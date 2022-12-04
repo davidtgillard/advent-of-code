@@ -114,4 +114,77 @@ module Day2 =
       rpsScore opponents yours)
     |> Seq.sum
 
+  [<AutoOpen>]
+  module day3 =
+    let private asciiLowerCaseA = int 'a'
+    
+    /// calculates the priority of a character
+    let private findPriority c =
+      let rangeStart = if Char.IsUpper(c) then 27 else 1
+      let priority = (int (Char.ToLower c)) - asciiLowerCaseA + rangeStart
+      priority
+      
+    // find the (first) common character amongst a list of strings
+    let private findCommonChar (strings: string list) =
+      Array.find (fun (c: Char) ->
+        List.forall (fun (s: string) -> s.Contains c) strings.Tail )
+        (strings.Head.ToCharArray())
+    
+    let ``day3.1`` (inputStream: StreamReader) =
+      streamToLines inputStream
+      |> Seq.map (fun str -> str.Substring(0, str.Length/2), str.Substring(str.Length/2)) // split each string in two
+      |> Seq.map (fun (s1, s2) -> findCommonChar [s1; s2])// find the first common character between both strings
+      |> Seq.map findPriority // get the priority
+      |> Seq.sum // sum the priorities
+    
+    let ``day3.2`` (inputStream: StreamReader) =
+      streamToLines inputStream
+      |> Seq.chunkBySize 3 // chunk into sequences of 3 strings
+      |> Seq.map (fun strings -> findCommonChar (Seq.toList strings)) // find the common char in all 3 strings
+      |> Seq.map findPriority // get the priority
+      |> Seq.sum // sum the priorities
 
+  [<AutoOpen>]
+  module day4 =
+    // converts a string of form (a-b,c-d) to (int*int)*(int*int)
+    let private strToRange (str: string) =
+      let split = str.Split('-')
+      Convert.ToInt32 split[0], Convert.ToInt32 split[1]
+      
+    let ``day4.1`` (inputStream: StreamReader) =    
+      // returns true iff super entirely contains sub
+      let rangeContainsRange (sub: int*int) (super: int*int) =
+        fst super <= fst sub && snd super >= snd sub
+
+      streamToLines inputStream
+      |> Seq.map (fun line ->
+        let split = line.Split(',')
+        split[0] |> strToRange, split[1] |> strToRange) // convert string to two tuples
+      |> Seq.filter (fun (rng1, rng2) -> rangeContainsRange rng1 rng2 || rangeContainsRange rng2 rng1) // filter based on containment 
+      |> Seq.length // count the number of pairs for which one range is fully contained within the other
+    
+    
+    let ``day4.2`` (inputStream: StreamReader) =
+      // returns true iff rng1 and rng2 are not disjoint
+      let rangesIntersect rng1 rng2 =
+        // 'lowest' is the lowest range
+        let lowest, other =
+          if fst rng1 <= fst rng2 then
+            rng1, rng2
+          else
+            rng2, rng1
+        // if the lowest element in other is lowest than the highest element in the lowest range, then we have an intersection
+        fst other <= snd lowest 
+       
+      streamToLines inputStream
+      |> Seq.map (fun line ->
+        let split = line.Split(',')
+        split[0] |> strToRange, split[1] |> strToRange) // convert string to two tuples
+      |> Seq.filter (fun (rng1, rng2) -> rangesIntersect rng1 rng2) // filter based on containment 
+      |> Seq.length // count the number of pairs for which one range is fully contained within the other
+      
+  
+  [<AutoOpen>]
+  module dayN =
+    let ``dayN.1`` = ()
+    let ``dayN.2`` = ()
