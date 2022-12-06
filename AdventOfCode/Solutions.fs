@@ -183,8 +183,89 @@ module Day2 =
       |> Seq.filter (fun (rng1, rng2) -> rangesIntersect rng1 rng2) // filter based on containment 
       |> Seq.length // count the number of pairs for which one range is fully contained within the other
       
+  [<AutoOpen>]
+  module day5 =
+    
+    // a move command
+    type private MoveCommand =
+      {
+        /// The index of the source column.
+        SourceCol: int
+        /// The index of the destination column.
+        DestinationCol: int
+        /// The number of items to move from the source column to the destination column.
+        NumItemsToMove: int
+      }
+      
+    /// updates the list of stacks with a given move. If pickupMany is true, assume that can move multiple items at a time (preserving order).
+    let private updateStacks (pickupMany: bool) (stacks: char list list) (move: MoveCommand) =
+      let src = stacks[move.SourceCol]
+      let dst = stacks[move.DestinationCol]
+      let pickupFunc =
+        if pickupMany then
+          id
+        else
+          List.rev
+      let moved =
+        src
+        |> List.take move.NumItemsToMove
+        |> pickupFunc
+      let newSrc = (List.skip move.NumItemsToMove src)
+      let newDst = (moved@dst)
+      stacks
+        |> List.updateAt move.SourceCol newSrc
+        |> List.updateAt move.DestinationCol newDst
+      
+    /// The core function used by day5.1 and day5.2.
+    let day5Core (pickupMany: bool) (inputStream: StreamReader) =
+      let lineStream = streamToLines inputStream
+      
+      // get all the lines before the move commands
+      let preMoveLines =
+        lineStream
+        |> Seq.takeWhile (fun line -> line.Trim().Length > 0)
+        |> Seq.rev
+        |> Seq.toList
+      
+      // find the column indices
+      let colIndices =
+        (preMoveLines |> List.head).ToCharArray()
+        |> Array.mapi (fun i c -> i, c)
+        |> Array.filter (fun (i, c) -> c <> ' ')
+        |> Array.map fst
+      
+      // read the stacks
+      let stackLines = List.tail preMoveLines
+      let stacks = 
+        seq {
+          for i in colIndices do
+            let mutable col = []
+            for line in stackLines do
+              if not (Char.IsWhiteSpace(line[i])) then 
+                col <- line[i]::col
+            yield col
+        } |> Seq.toList
+      
+      // read the move operations
+      let moves =
+        lineStream
+        |> Seq.map (fun line ->
+          let split = line.Split()
+          { NumItemsToMove = Convert.ToInt32 split[1]; SourceCol = Convert.ToInt32 split[3] - 1; DestinationCol = Convert.ToInt32 split[5] - 1; })
+        |> Seq.toList
+      
+      // apply the move commands to the stacks
+      moves
+      |> List.fold
+          (updateStacks pickupMany)
+          stacks
+      |> List.map (fun lst -> lst.Head.ToString())
+      |> String.concat ""
+      
+    let ``day5.1`` (inputStream: StreamReader) = day5Core false inputStream
+    let ``day5.2`` (inputStream: StreamReader) = day5Core true inputStream
   
   [<AutoOpen>]
   module dayN =
-    let ``dayN.1`` = ()
-    let ``dayN.2`` = ()
+    let ``dayN.1`` (inputStream: StreamReader) = ()
+    let ``dayN.2`` (inputStream: StreamReader) = ()
