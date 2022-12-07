@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Text
 
 let private streamToLines (inputStream: StreamReader) =
   let rec getLines (s: StreamReader) =
@@ -262,8 +263,23 @@ module Day2 =
       |> List.map (fun lst -> lst.Head.ToString())
       |> String.concat ""
       
+   
     let ``day5.1`` (inputStream: StreamReader) = day5Core false inputStream
     let ``day5.2`` (inputStream: StreamReader) = day5Core true inputStream
+  
+  [<AutoOpen>]
+    module day6 =
+      
+      let day6Core (chunkLength: int) (inputStream: StreamReader) =
+        let found =
+          inputStream.ReadToEnd().ToCharArray()
+          |> Array.windowed chunkLength
+          |> Array.findIndex (fun chars -> (chars |> Set.ofArray |> Set.count) = chunkLength)
+        found + chunkLength
+      
+      let ``day6.1`` (inputStream: StreamReader) = day6Core 4 inputStream
+      let ``day6.2`` (inputStream: StreamReader) = day6Core 14 inputStream
+  
   
   [<AutoOpen>]
   module dayN =

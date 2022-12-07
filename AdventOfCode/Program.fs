@@ -20,6 +20,8 @@ let solution =
   | "4", "2" -> toString ``day4.2``
   | "5", "1" -> toString ``day5.1``
   | "5", "2" -> toString ``day5.2``
+  | "6", "1" -> toString ``day6.1``
+  | "6", "2" -> toString ``day6.2``
   | unknownInput -> failwithf $"Unknown input {unknownInput}"
 
 let inputFile = $"day{day}.txt"
